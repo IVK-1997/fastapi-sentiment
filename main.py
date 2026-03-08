@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# Allow external requests (important for grader)
+# Allow grader requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,21 +17,38 @@ app.add_middleware(
 class SentimentRequest(BaseModel):
     sentences: List[str]
 
-positive_words = ["love", "great", "awesome", "good", "happy", "excellent", "amazing"]
-negative_words = ["hate", "bad", "terrible", "awful", "sad", "worst"]
+positive_words = {
+    "love","great","awesome","good","happy","excellent","fantastic","amazing",
+    "nice","wonderful","best","enjoy","liked","like","positive","brilliant",
+    "delight","pleasant","super","cool","perfect","satisfied","glad","excited"
+}
+
+negative_words = {
+    "hate","bad","terrible","awful","sad","worst","angry","horrible","poor",
+    "disappointing","disappointed","annoying","frustrating","problem","issue",
+    "negative","upset","pain","fail","failure","broken","boring","sucks"
+}
 
 def analyze_sentiment(text: str) -> str:
     text = text.lower()
 
+    pos_score = 0
+    neg_score = 0
+
     for word in positive_words:
         if word in text:
-            return "happy"
+            pos_score += 1
 
     for word in negative_words:
         if word in text:
-            return "sad"
+            neg_score += 1
 
-    return "neutral"
+    if pos_score > neg_score:
+        return "happy"
+    elif neg_score > pos_score:
+        return "sad"
+    else:
+        return "neutral"
 
 @app.post("/sentiment")
 def sentiment(data: SentimentRequest):
